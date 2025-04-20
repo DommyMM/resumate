@@ -1,48 +1,46 @@
 import Link from "next/link";
-import Image from "next/image";
 
-// Template data
 const templates = [
     {
-        id: "classic",
-        name: "Classic Academic",
-        description: "A traditional academic-style resume with clean typography and formal section headings.",
-        features: ["Formal section dividers", "Traditional typography", "Optimized for academic positions", "ATS-friendly structure"],
+        id: "scholar",
+        name: "Academic Scholar",
+        description: "Emphasizes educational achievements and qualifications, perfect for academic positions and graduate applications.",
+        features: ["Enhanced education section", "Academic qualifications focus", "Elegant typography", "ATS-friendly structure"],
         style: "classic",
-    },
-    {
-        id: "modern",
-        name: "Modern Professional",
-        description: "A contemporary take on the academic format with modern color accents and cleaner lines.",
-        features: ["Color accents", "Modern typography", "Balanced white space", "Bold section headings"],
-        style: "modern",
     },
     {
         id: "professional",
-        name: "Executive",
-        description: "A refined business-oriented layout ideal for corporate and executive positions.",
-        features: ["Minimalist design", "Business-focused layout", "Emphasis on achievements", "Compact presentation"],
+        name: "Industry Professional",
+        description: "Highlights work experience and achievements with a clean, business-oriented design for corporate positions.",
+        features: ["Expanded work experience section", "Achievement-focused bullets", "Business-ready layout", "Professional tone"],
         style: "professional",
     },
     {
-        id: "technical",
-        name: "Technical Specialist",
-        description: "Designed for technical roles with emphasis on skills and projects.",
-        features: ["Expanded skills section", "Project showcase", "Technical keywords optimization", "Code-friendly typography"],
+        id: "researcher",
+        name: "Research Specialist",
+        description: "Showcases research projects and technical skills with a modern design for research and technical roles.",
+        features: ["Prominent projects section", "Technical skills highlight", "Research achievements focus", "Modern visual elements"],
         style: "modern",
     },
     {
-        id: "research",
-        name: "Research Scholar",
-        description: "Perfect for research positions with extra emphasis on publications and research experience.",
-        features: ["Publications section", "Research projects highlight", "Academic achievements focus", "Citation-ready format"],
-        style: "classic",
+        id: "technical",
+        name: "Technical Expert",
+        description: "Designed for technical roles with emphasis on skills and technical expertise.",
+        features: ["Expanded skills section", "Technical competencies showcase", "Code and tools expertise", "Technical achievements focus"],
+        style: "modern",
+    },
+    {
+        id: "startup",
+        name: "Startup Innovator",
+        description: "Perfect for startup environments, focusing on versatile skills and impactful projects.",
+        features: ["Balanced experience and projects", "Innovation highlights", "Versatility emphasis", "Modern digital presence"],
+        style: "professional",
     },
     {
         id: "minimal",
         name: "Minimalist",
-        description: "A clean, space-efficient design that focuses purely on content.",
-        features: ["Maximum content space", "Distraction-free design", "Highly readable", "Excellent for text-heavy resumes"],
+        description: "A clean, space-efficient design that focuses purely on content for any career type.",
+        features: ["Maximum content space", "Distraction-free design", "Highly readable", "Multi-purpose application"],
         style: "professional",
     },
 ];

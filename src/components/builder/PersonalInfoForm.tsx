@@ -25,7 +25,7 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = memo(({
         }
     }, [data]);
 
-    // Debounce the local data with 5 second delay
+    // Debounce the local data with 2 second delay
     const debouncedData = useDebounce(localData, 2000);
 
     // Update parent component when debounced data changes
@@ -52,6 +52,34 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = memo(({
         }
 
         setLocalData({ ...localData, phone: formattedNumber });
+    };
+
+    // Process LinkedIn URL to extract username
+    const handleLinkedInChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let value = e.target.value;
+        
+        // Extract username if full URL is provided
+        if (value.includes('linkedin.com/in/')) {
+            // Find the position of '/in/' and take everything after it
+            const usernameStart = value.indexOf('/in/') + 4;
+            value = value.substring(usernameStart).replace(/\/$/, ''); // Remove trailing slash if present
+        }
+        
+        setLocalData({ ...localData, linkedin: value });
+    };
+
+    // Process GitHub URL to extract username
+    const handleGitHubChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let value = e.target.value;
+        
+        // Extract username if full URL is provided
+        if (value.includes('github.com/')) {
+            // Find the position of 'github.com/' and take everything after it
+            const usernameStart = value.indexOf('github.com/') + 11;
+            value = value.substring(usernameStart).replace(/\/$/, ''); // Remove trailing slash if present
+        }
+        
+        setLocalData({ ...localData, github: value });
     };
 
     return (
@@ -91,21 +119,21 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = memo(({
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">LinkedIn (optional)</label>
                     <input
-                        type="url"
+                        type="text"
                         className="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600"
                         value={localData.linkedin || ''}
-                        onChange={(e) => setLocalData({ ...localData, linkedin: e.target.value })}
-                        placeholder="https://linkedin.com/in/yourprofile"
+                        onChange={handleLinkedInChange}
+                        placeholder="username or full URL"
                     />
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">GitHub (optional)</label>
                     <input
-                        type="url"
+                        type="text"
                         className="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600"
                         value={localData.github || ''}
-                        onChange={(e) => setLocalData({ ...localData, github: e.target.value })}
-                        placeholder="https://github.com/yourusername"
+                        onChange={handleGitHubChange}
+                        placeholder="username or full URL"
                     />
                 </div>
                 <div>
