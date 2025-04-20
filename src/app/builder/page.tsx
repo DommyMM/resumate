@@ -10,6 +10,7 @@ import PersonalInfoForm from '@/components/builder/PersonalInfoForm';
 import EducationForm from '@/components/builder/Education';
 import WorkExperienceForm from '@/components/builder/WorkExperience';
 import ProjectsForm from '@/components/builder/Projects';
+import SkillsForm from '@/components/builder/Skills';
 
 // Import the LaTeX generator
 import { generateLaTeX } from '@/types/resume';
@@ -40,12 +41,7 @@ const sections = [
         id: 'skills', 
         label: 'Technical Skills',
         description: 'Technical and professional skills relevant to your field'
-    },
-    { 
-        id: 'commendations', 
-        label: 'Commendations',
-        description: 'Awards, recognitions, and professional achievements'
-    },
+    }
 ];
 
 export default function BuilderPage() {
@@ -69,10 +65,10 @@ export default function BuilderPage() {
         experience: [],
         education: [],
         skills: {
-            languages: [],
-            frameworks: [],
-            devTools: [],
-            libraries: []
+            Languages: [],
+            Frameworks: [],
+            DevTools: [],
+            Libraries: []
         },
         projects: [],
         certifications: [],
@@ -184,6 +180,10 @@ export default function BuilderPage() {
         updateSectionData('projects', data);
     }, [updateSectionData]);
 
+    const updateSkills = useCallback((data: Skills) => {
+        updateSectionData('skills', data);
+    }, [updateSectionData]);
+
     // Render current section form
     const renderCurrentSectionForm = () => {
         const currentSection = sections[currentStep];
@@ -224,6 +224,16 @@ export default function BuilderPage() {
                     <ProjectsForm
                         data={resume.projects}
                         updateData={updateProjects}
+                        sectionLabel={currentSection.label}
+                        sectionDescription={currentSection.description}
+                    />
+                );
+
+            case 'skills':
+                return (
+                    <SkillsForm
+                        data={resume.skills}
+                        updateData={updateSkills}
                         sectionLabel={currentSection.label}
                         sectionDescription={currentSection.description}
                     />

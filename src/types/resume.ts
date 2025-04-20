@@ -36,11 +36,16 @@ export interface Project {
 }
 
 export interface Skills {
-    languages: string[];
-    frameworks: string[];
-    devTools: string[];
-    libraries: string[];
+    [category: string]: string[];
 }
+
+// If there are specific categories you want to ensure exist, you can initialize them:
+export const defaultSkillsData: Skills = {
+    "Languages": [],
+    "Frameworks": [],
+    "Developer Tools": [],
+    "Libraries": []
+};
 
 export interface Resume {
     personalInfo: PersonalInfo;
@@ -53,11 +58,12 @@ export interface Resume {
 }
 
 function escapeLaTeXChars(text: string): string {
-  if (!text) return '';
-  return text
+    if (!text) return '';
+    return text
     .replace(/%/g, '\\%')
     .replace(/\$/g, '\\$')
-    .replace(/&/g, '\\&');
+    .replace(/&/g, '\\&')
+    .replace(/:/g, '\\:');
 }
 
 export function generateLaTeX(data: Resume): string {
@@ -244,18 +250,31 @@ export function generateLaTeX(data: Resume): string {
 
     `;
 
-    // Skills section
+
     latex += `
-    %-----------TECHNICAL SKILLS-----------
-    \\section{Technical Skills}
-    \\begin{itemize}[leftmargin=0.15in, label={}]
-        \\small{\\item{
-        \\textbf{Languages}{: ${data.skills.languages.map(escapeLaTeXChars).join(', ')}} \\\\
-        \\textbf{Frameworks}{: ${data.skills.frameworks.map(escapeLaTeXChars).join(', ')}} \\\\
-        \\textbf{Developer Tools}{: ${data.skills.devTools.map(escapeLaTeXChars).join(', ')}} \\\\
-        \\textbf{Libraries}{: ${data.skills.libraries.map(escapeLaTeXChars).join(', ')}}
-        }}
-    \\end{itemize}
+%-----------TECHNICAL SKILLS-----------
+\\section{Technical Skills}
+\\begin{itemize}[leftmargin=0.15in, label={}]
+    \\small{\\item{`;
+
+// Add each skill category
+const skillCategories = Object.keys(data.skills);
+skillCategories.forEach((category, index) => {
+    const skills = data.skills[category];
+    if (skills && skills.length > 0) {
+        latex += `
+    \\textbf{${escapeLaTeXChars(category)}}{: ${skills.map(escapeLaTeXChars).join(', ')}}`
+        
+        // Add line break if not the last category
+        if (index < skillCategories.length - 1) {
+            latex += ` \\\\`;
+        }
+    }
+});
+
+latex += `
+    }}
+\\end{itemize}
 
     `;
 
