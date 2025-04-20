@@ -31,6 +31,7 @@ export interface Project {
     name: string;
     technologies: string;
     dates: string;
+    url?: string;
     bullets: string[];
 }
 
@@ -101,6 +102,9 @@ export function generateLaTeX(data: Resume): string {
     \\vspace{-4pt}\\scshape\\raggedright\\large
     }{}{0em}{}[\\color{black}\\titlerule \\vspace{-5pt}]
 
+    % Fix for bullet points in nested lists
+    \\renewcommand\\labelitemii{$\\vcenter{\\hbox{\\tiny$\\bullet$}}$}
+
     % Ensure that generate pdf is machine readable/ATS parsable
     \\pdfgentounicode=1
 
@@ -110,6 +114,19 @@ export function generateLaTeX(data: Resume): string {
     \\item\\small{
         {#1 \\vspace{-2pt}}
     }
+    }
+
+    % Add missing subitem command
+    \\newcommand{\\resumeSubItem}[1]{
+    \\resumeItem{#1}
+    }
+
+    % Add missing subsubheading command
+    \\newcommand{\\resumeSubSubheading}[2]{
+    \\item
+    \\begin{tabular*}{0.97\\textwidth}{l@{\\extracolsep{\\fill}}r}
+       \\textit{\\small#1} & \\textit{\\small #2} \\\\
+    \\end{tabular*}\\vspace{-7pt}
     }
 
     \\newcommand{\\resumeSubheading}[4]{
@@ -180,7 +197,7 @@ export function generateLaTeX(data: Resume): string {
     \\resumeSubHeadingListStart`;
 
     data.experience.forEach(exp => {
-        const dates = exp.dates || `${escapeLaTeXChars(exp.startDate || '')} - ${escapeLaTeXChars(exp.endDate || 'Present')}`;
+        const dates = exp.dates || `${escapeLaTeXChars(exp.startDate || '')} -- ${escapeLaTeXChars(exp.endDate || 'Present')}`;
         latex += `
         \\resumeSubheading
         {${escapeLaTeXChars(exp.position)}}{${dates}}

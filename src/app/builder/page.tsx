@@ -6,10 +6,10 @@ import { Resume, PersonalInfo, Education, Experience, Project, Skills } from '@/
 
 // Import components
 import PDFViewer from '@/components/builder/PDFViewer';
-import FeedbackPanel from '@/components/builder/FeedbackPanel';
 import PersonalInfoForm from '@/components/builder/PersonalInfoForm';
 import EducationForm from '@/components/builder/Education';
 import WorkExperienceForm from '@/components/builder/WorkExperience';
+import ProjectsForm from '@/components/builder/Projects';
 
 // Import the LaTeX generator
 import { generateLaTeX } from '@/types/resume';
@@ -101,7 +101,7 @@ export default function BuilderPage() {
     }, [generatedLatex, latexContent]);
 
     
-    // Update section data and generate AI feedback - now memoized with useCallback
+    // Update section data - simplified without redundant feedback API call
     const updateSectionData = useCallback(async (section: string, data: any) => {
         // Check if data actually changed to prevent unnecessary updates
         const currentData = resume[section as keyof Resume];
@@ -109,7 +109,7 @@ export default function BuilderPage() {
             return; // Skip update if data hasn't changed
         }
         
-        // Set processing state
+        // Brief processing indicator
         setIsProcessing(true);
         
         // Update the resume state
@@ -118,39 +118,15 @@ export default function BuilderPage() {
             [section]: data,
         }));
 
-        // For sections that need feedback from the API
-        if (section !== 'education') {
-            try {
-                // This would be an actual API call in production
-                const response = await fetch("http://localhost:8000/feedback", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        section: section,
-                        data: data
-                    }),
-                });
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    setFeedback(result.feedback || '');
-                } else {
-                    console.error('Failed to get feedback:', response.statusText);
-                    setFeedback('');
-                }
-            } catch (error) {
-                console.error('Error getting feedback:', error);
-                setFeedback('');
-            }
-        } else {
-            // Clear any existing feedback if we're in education section
+        // Clear any general feedback when switching sections
+        if (section !== 'experience') {
             setFeedback('');
         }
         
-        // Set processing to false
-        setIsProcessing(false);
+        // End processing state after short delay
+        setTimeout(() => {
+            setIsProcessing(false);
+        }, 100);
     }, [resume]);
 
     // Handle generate LaTeX - simplified since we now use useMemo for LaTeX generation
@@ -204,6 +180,10 @@ export default function BuilderPage() {
         updateSectionData('experience', data);
     }, [updateSectionData]);
 
+    const updateProjects = useCallback((data: Project[]) => {
+        updateSectionData('projects', data);
+    }, [updateSectionData]);
+
     // Render current section form
     const renderCurrentSectionForm = () => {
         const currentSection = sections[currentStep];
@@ -234,6 +214,16 @@ export default function BuilderPage() {
                     <WorkExperienceForm
                         data={resume.experience}
                         updateData={updateExperience}
+                        sectionLabel={currentSection.label}
+                        sectionDescription={currentSection.description}
+                    />
+                );
+
+            case 'projects':
+                return (
+                    <ProjectsForm
+                        data={resume.projects}
+                        updateData={updateProjects}
                         sectionLabel={currentSection.label}
                         sectionDescription={currentSection.description}
                     />
@@ -301,12 +291,6 @@ export default function BuilderPage() {
                         <div className="lg:w-1/2 order-2 lg:order-1">
                             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                                 {renderCurrentSectionForm()}
-                                
-                                {/* Feedback Panel */}
-                                <FeedbackPanel 
-                                    feedback={feedback} 
-                                    isVisible={!!feedback} 
-                                />
                                 
                                 {/* Navigation Buttons */}
                                 <div className="flex justify-between mt-8">
