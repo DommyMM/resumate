@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { Resume, PersonalInfo, Education, Experience, Project, Skills } from '@/types/resume';
 
@@ -8,7 +8,6 @@ import { Resume, PersonalInfo, Education, Experience, Project, Skills } from '@/
 import PDFViewer from '@/components/builder/PDFViewer';
 import FeedbackPanel from '@/components/builder/FeedbackPanel';
 import PersonalInfoForm from '@/components/builder/PersonalInfoForm';
-import SummaryForm from '@/components/builder/SummaryForm';
 
 // Import the LaTeX generator
 import { generateLaTeX } from '@/types/resume';
@@ -94,70 +93,84 @@ export default function BuilderPage() {
         certifications: [],
     });
 
+    // Memoize LaTeX generation to prevent unnecessary regenerations
+    const generatedLatex = useMemo(() => {
+        try {
+            return generateLaTeX(resume);
+        } catch (error) {
+            console.error('Error generating LaTeX:', error);
+            return '';
+        }
+    }, [resume]);
+
     // Generate initial LaTeX when component mounts
     useEffect(() => {
-        // Generate initial LaTeX when component mounts
-        handleGenerateLatex();
-    }, []);
+        // Only set LaTeX content if it's different to avoid unnecessary rerenders
+        if (latexContent !== generatedLatex) {
+            setLatexContent(generatedLatex);
+            
+            // For now, we're not generating a PDF
+            // Just keep the placeholder URL if needed for component structure
+            setPdfUrl('/sample-resume.pdf');
+        }
+    }, [generatedLatex, latexContent]);
 
-    // Update section data and generate AI feedback
-    const updateSectionData = async (section: string, data: any) => {
+    
+    // Update section data and generate AI feedback - now memoized with useCallback
+    const updateSectionData = useCallback(async (section: string, data: any) => {
+        // Check if data actually changed to prevent unnecessary updates
+        const currentData = resume[section as keyof Resume];
+        if (JSON.stringify(currentData) === JSON.stringify(data)) {
+            return; // Skip update if data hasn't changed
+        }
+        
+        // Set processing state
+        setIsProcessing(true);
+        
         // Update the resume state
         setResume(prev => ({
             ...prev,
             [section]: data,
         }));
+    
+        // Get feedback immediately - no need for additional waiting
+        // This would be an actual API call in production
+        setFeedback(mockAIFeedback[section as keyof typeof mockAIFeedback]);
+        
+        // Give a small delay so the user sees the feedback
+        // We can remove this in production when using real API calls
+        setTimeout(() => {
+            setIsProcessing(false);
+        }, 500);
+    }, [resume, mockAIFeedback]);
 
-        // Mock API call to backend with loading state
+    // Handle generate LaTeX - simplified since we now use useMemo for LaTeX generation
+    const handleGenerateLatex = useCallback(() => {
         setIsProcessing(true);
         
-        // Simulate API call delay
         setTimeout(() => {
-            // Set feedback from mock response
-            setFeedback(mockAIFeedback[section as keyof typeof mockAIFeedback]);
-            setIsProcessing(false);
-            
-            // Regenerate LaTeX code
-            handleGenerateLatex();
-        }, 1000);
-    };
-
-    // Handle generate LaTeX
-    const handleGenerateLatex = () => {
-        setIsProcessing(true);
-        try {
-            // Generate LaTeX directly using our function
-            const latex = generateLaTeX(resume);
-            
-            // Set the LaTeX content for display in the viewer
-            setLatexContent(latex);
-            
-            // For now, we're not generating a PDF
-            // Just keep the placeholder URL if needed for component structure
+            setLatexContent(generatedLatex);
             setPdfUrl('/sample-resume.pdf');
-        } catch (error) {
-            console.error('Error generating LaTeX:', error);
-        } finally {
             setIsProcessing(false);
-        }
-    };
+        }, 100);
+    }, [generatedLatex]);
 
     // Handle next step navigation
-    const handleNext = () => {
+    const handleNext = useCallback(() => {
         if (currentStep < sections.length - 1) {
             setCurrentStep(currentStep + 1);
         }
-    };
+    }, [currentStep]);
 
     // Handle previous step navigation
-    const handlePrevious = () => {
+    const handlePrevious = useCallback(() => {
         if (currentStep > 0) {
             setCurrentStep(currentStep - 1);
         }
-    };
+    }, [currentStep]);
 
     // Generate and download final PDF
-    const downloadPDF = () => {
+    const downloadPDF = useCallback(() => {
         if (pdfUrl) {
             // Create a temporary link to download the PDF
             const link = document.createElement('a');
@@ -167,7 +180,16 @@ export default function BuilderPage() {
         } else {
             alert('Please generate a PDF first.');
         }
-    };
+    }, [pdfUrl, resume.personalInfo.name]);
+
+    // Memoize section-specific update functions
+    const updatePersonalInfo = useCallback((data: PersonalInfo) => {
+        updateSectionData('personalInfo', data);
+    }, [updateSectionData]);
+
+    const updateSummary = useCallback((data: string) => {
+        updateSectionData('summary', data);
+    }, [updateSectionData]);
 
     // Render current section form
     const renderCurrentSectionForm = () => {
@@ -178,17 +200,7 @@ export default function BuilderPage() {
                 return (
                     <PersonalInfoForm 
                         data={resume.personalInfo}
-                        updateData={(data) => updateSectionData('personalInfo', data)}
-                        sectionLabel={currentSection.label}
-                        sectionDescription={currentSection.description}
-                    />
-                );
-                
-            case 'summary':
-                return (
-                    <SummaryForm
-                        data={resume.summary}
-                        updateData={(data) => updateSectionData('summary', data)}
+                        updateData={updatePersonalInfo}
                         sectionLabel={currentSection.label}
                         sectionDescription={currentSection.description}
                     />
@@ -278,33 +290,18 @@ export default function BuilderPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            {/* Header */}
-            <header className="bg-white dark:bg-gray-800 shadow">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center py-4">
-                        <Link href="/" className="flex items-center gap-2">
-                            <div className="bg-blue-600 h-8 w-8 rounded-md flex items-center justify-center text-white font-bold text-base">R</div>
-                            <h1 className="text-xl font-bold text-gray-800 dark:text-white">ResumeBuilder</h1>
-                        </Link>
-                        
-                        <div className="flex items-center gap-4">
-                            <button 
-                                onClick={downloadPDF}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-1"
-                                disabled={isProcessing || !pdfUrl}
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                                </svg>
-                                Download PDF
-                            </button>
-                        </div>
-                    </div>
+            {/* Header with absolute positioned logo and centered progress bar */}
+            <header className="bg-white dark:bg-gray-800 shadow relative">
+                {/* Logo - Absolutely positioned to the left */}
+                <div className="absolute left-16 top-1/2 transform -translate-y-1/2">
+                    <Link href="/" className="flex items-center gap-2">
+                        <div className="bg-blue-600 h-8 w-8 rounded-md flex items-center justify-center text-white font-bold text-base">R</div>
+                        <h1 className="text-xl font-bold text-gray-800 dark:text-white">ResumeBuilder</h1>
+                    </Link>
                 </div>
-            </header>
-            
-            {/* Progress Bar */}
-            <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                
+                {/* Centered progress bar content */}
+                <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center justify-between mb-2">
                         <h2 className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -322,6 +319,7 @@ export default function BuilderPage() {
                     </div>
                 </div>
             </div>
+            </header>
             
             {/* Main Content */}
             <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">

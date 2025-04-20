@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { PersonalInfo } from '@/types/resume';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface PersonalInfoFormProps {
     data: PersonalInfo;
@@ -8,12 +9,51 @@ interface PersonalInfoFormProps {
     sectionDescription: string;
 }
 
-const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
+const PersonalInfoForm: React.FC<PersonalInfoFormProps> = memo(({
     data,
     updateData,
     sectionLabel,
     sectionDescription
-    }) => {
+}) => {
+    // Local state for form values - initialize from props but don't update on prop changes
+    const [localData, setLocalData] = useState<PersonalInfo>(() => data);
+    
+    // Update local state if props data changes (e.g., when form is reset)
+    useEffect(() => {
+        if (JSON.stringify(data) !== JSON.stringify(localData)) {
+            setLocalData(data);
+        }
+    }, [data]);
+    
+    // Debounce the local data with 5 second delay
+    const debouncedData = useDebounce(localData, 2000);
+    
+    // Update parent component when debounced data changes
+    useEffect(() => {
+        // Only call updateData if data actually changed
+        if (JSON.stringify(debouncedData) !== JSON.stringify(data)) {
+            updateData(debouncedData);
+        }
+    }, [debouncedData, data, updateData]);
+    
+    // Format phone number as user types (333-333-3333)
+    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        // Remove all non-digits
+        const digits = e.target.value.replace(/\D/g, '');
+        
+        // Format with dashes
+        let formattedNumber = '';
+        if (digits.length <= 3) {
+            formattedNumber = digits;
+        } else if (digits.length <= 6) {
+            formattedNumber = `${digits.slice(0, 3)}-${digits.slice(3)}`;
+        } else {
+            formattedNumber = `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+        }
+        
+        setLocalData({ ...localData, phone: formattedNumber });
+    };
+
     return (
         <div>
         <h3 className="text-lg font-medium mb-4">{sectionLabel}</h3>
@@ -25,8 +65,8 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
             <input 
                 type="text" 
                 className="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600"
-                value={data.name}
-                onChange={(e) => updateData({ ...data, name: e.target.value })}
+                value={localData.name}
+                onChange={(e) => setLocalData({ ...localData, name: e.target.value })}
             />
             </div>
             <div>
@@ -34,8 +74,8 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
             <input 
                 type="email" 
                 className="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600"
-                value={data.email}
-                onChange={(e) => updateData({ ...data, email: e.target.value })}
+                value={localData.email}
+                onChange={(e) => setLocalData({ ...localData, email: e.target.value })}
             />
             </div>
             <div>
@@ -43,8 +83,10 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
             <input 
                 type="tel" 
                 className="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600"
-                value={data.phone}
-                onChange={(e) => updateData({ ...data, phone: e.target.value })}
+                value={localData.phone}
+                onChange={handlePhoneChange}
+                placeholder="123-456-7890"
+                maxLength={12}
             />
             </div>
             <div>
@@ -52,8 +94,8 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
             <input 
                 type="text" 
                 className="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600"
-                value={data.location}
-                onChange={(e) => updateData({ ...data, location: e.target.value })}
+                value={localData.location}
+                onChange={(e) => setLocalData({ ...localData, location: e.target.value })}
             />
             </div>
             <div>
@@ -61,8 +103,8 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
             <input 
                 type="url" 
                 className="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600"
-                value={data.linkedin || ''}
-                onChange={(e) => updateData({ ...data, linkedin: e.target.value })}
+                value={localData.linkedin || ''}
+                onChange={(e) => setLocalData({ ...localData, linkedin: e.target.value })}
                 placeholder="https://linkedin.com/in/yourprofile"
             />
             </div>
@@ -71,8 +113,8 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
             <input 
                 type="url" 
                 className="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600"
-                value={data.github || ''}
-                onChange={(e) => updateData({ ...data, github: e.target.value })}
+                value={localData.github || ''}
+                onChange={(e) => setLocalData({ ...localData, github: e.target.value })}
                 placeholder="https://github.com/yourusername"
             />
             </div>
@@ -81,14 +123,16 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
             <input 
                 type="url" 
                 className="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600"
-                value={data.website || ''}
-                onChange={(e) => updateData({ ...data, website: e.target.value })}
+                value={localData.website || ''}
+                onChange={(e) => setLocalData({ ...localData, website: e.target.value })}
                 placeholder="https://yourwebsite.com"
             />
             </div>
         </div>
         </div>
     );
-};
+});
+
+PersonalInfoForm.displayName = 'PersonalInfoForm';
 
 export default PersonalInfoForm;
