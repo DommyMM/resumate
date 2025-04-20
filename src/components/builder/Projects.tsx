@@ -169,6 +169,11 @@ const ProjectsForm: React.FC<ProjectsFormProps> = memo(({
             if (result.feedback && result.feedback.length > 0) {
                 setOptimizationFeedback(result.feedback.join(' '));
             }
+    
+            // Force re-scroll in PDFViewer by dispatching a custom event
+            window.dispatchEvent(new CustomEvent('resume-section-updated', {
+                detail: { section: 'projects' }
+            }));
             
         } catch (error) {
             console.error('API Error:', error);

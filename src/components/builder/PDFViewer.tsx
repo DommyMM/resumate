@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 interface PDFViewerProps {
     pdfUrl?: string | null;
@@ -8,6 +8,7 @@ interface PDFViewerProps {
     isProcessing?: boolean;
     onDownload?: () => void;
     downloadDisabled?: boolean;
+    currentSection?: string; // New prop to know which section is being edited
 }
 
 const PDFViewer: React.FC<PDFViewerProps> = ({ 
@@ -15,7 +16,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     latexContent, 
     isProcessing = false,
     onDownload,
-    downloadDisabled = false
+    downloadDisabled = false,
+    currentSection = 'personal' // Default to personal section
 }) => {
     const [currentTab, setCurrentTab] = useState<'preview' | 'latex'>('latex');
     const [copySuccess, setCopySuccess] = useState<boolean>(false);
@@ -23,6 +25,41 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     // For future PDF implementation
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const preRef = useRef<HTMLPreElement>(null);
+    
+    // Section markers in LaTeX
+    const sectionMarkers = {
+        'personal': '\\begin{center}',
+        'education': '%-----------EDUCATION-----------',
+        'experience': '%-----------EXPERIENCE-----------',
+        'projects': '%-----------PROJECTS-----------',
+        'skills': '%-----------TECHNICAL SKILLS-----------'
+    };
+    
+    // Scroll to the relevant section when the currentSection changes
+    useEffect(() => {
+        if (currentTab === 'latex' && latexContent && preRef.current && currentSection) {
+            const marker = sectionMarkers[currentSection];
+            if (!marker) return;
+            
+            const content = preRef.current.textContent || '';
+            const index = content.indexOf(marker);
+            
+            if (index !== -1) {
+                // Find the line number by counting newlines
+                const textUpToMarker = content.substring(0, index);
+                const lineNumber = (textUpToMarker.match(/\n/g) || []).length;
+                
+                // Approximate scroll position (each line is roughly 18px high)
+                const scrollTop = lineNumber * 18;
+                
+                // Scroll container to position
+                if (containerRef.current) {
+                    containerRef.current.scrollTop = scrollTop;
+                }
+            }
+        }
+    }, [currentSection, latexContent, currentTab]);
     
     // Copy to clipboard function
     const copyToClipboard = async () => {
@@ -35,6 +72,36 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
                 console.error('Failed to copy: ', err);
             }
         }
+    };
+    
+    // Helper function to highlight active section
+    const highlightSection = (text: string) => {
+        if (!latexContent || !currentSection) return text;
+        
+        const marker = sectionMarkers[currentSection];
+        if (!marker) return text;
+        
+        // Split text at marker
+        const parts = text.split(marker);
+        if (parts.length < 2) return text;
+        
+        // Find the end of the section (start of next section or end of document)
+        const nextSectionMarkers = Object.values(sectionMarkers)
+            .filter(m => m !== marker && text.indexOf(m) > text.indexOf(marker));
+            
+        let endIndex: number = text.length;
+        for (const nextMarker of nextSectionMarkers) {
+            const nextIdx = text.indexOf(nextMarker, text.indexOf(marker));
+            if (nextIdx !== -1 && nextIdx < endIndex) {
+                endIndex = nextIdx;
+            }
+        }
+        
+        // Extract the section content
+        const sectionContent = text.substring(text.indexOf(marker), endIndex);
+        
+        // Prepare the highlighted version (we'll apply styling in the JSX)
+        return text.replace(sectionContent, `###HIGHLIGHT_START###${sectionContent}###HIGHLIGHT_END###`);
     };
     
     if (isProcessing) {
@@ -75,10 +142,22 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
                         PDF Preview (coming soon)
                     </button>
                 </div>
+                
+                {/* Download button - absolutely positioned at right */}
+                <button 
+                    onClick={onDownload}
+                    className={`absolute right-0 px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-1 text-sm ${downloadDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={downloadDisabled}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                    Download PDF
+                </button>
             </div>
         
             {/* Content area - with background styling */}
-            <div className="flex-grow overflow-auto relative bg-white dark:bg-gray-800 rounded-b-lg shadow-md">
+            <div className="flex-grow overflow-auto relative bg-white dark:bg-gray-800 rounded-b-lg shadow-md" ref={containerRef}>
                 {currentTab === 'latex' && latexContent ? (
                     <div className="p-4 relative">
                         {/* Copy button – now sticky */}
@@ -106,9 +185,15 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
                             </button>
                         </div>
                         <div className="bg-gray-50 dark:bg-gray-900 rounded p-4 overflow-auto h-full mt-2">
-                            <pre className="text-xs font-mono whitespace-pre-wrap text-gray-800 dark:text-gray-200 pt-8">
-                                {latexContent}
-                            </pre>
+                            <pre 
+                                ref={preRef} 
+                                className="text-xs font-mono whitespace-pre-wrap text-gray-800 dark:text-gray-200 pt-8"
+                                dangerouslySetInnerHTML={{
+                                    __html: highlightSection(latexContent)
+                                        .replace('###HIGHLIGHT_START###', '<div class="bg-blue-100 dark:bg-blue-900/30 p-2 rounded my-2 border-l-4 border-blue-500">')
+                                        .replace('###HIGHLIGHT_END###', '</div>')
+                                }}
+                            />
                         </div>
                     </div>
                 ) : currentTab === 'preview' && pdfUrl ? (

@@ -336,7 +336,8 @@ export default function BuilderPage() {
                             <PDFViewer 
                                 pdfUrl={pdfUrl} 
                                 latexContent={latexContent}
-                                isProcessing={isProcessing} 
+                                isProcessing={isProcessing}
+                                currentSection={sections[currentStep].id} 
                             />
                             
                             {/* Add download button */}

@@ -141,7 +141,6 @@ const WorkExperienceForm: React.FC<WorkExperienceFormProps> = memo(({
         setEditingId(null);
     };
     
-    // Optimize bullets with AI
     const handleOptimizeBullets = async (id: string, text: string) => {
         setIsOptimizing(id);
         setOptimizationFeedback('');
@@ -181,6 +180,11 @@ const WorkExperienceForm: React.FC<WorkExperienceFormProps> = memo(({
             if (result.feedback && result.feedback.length > 0) {
                 setOptimizationFeedback(result.feedback.join(' '));
             }
+            
+            // Force re-scroll in PDFViewer by dispatching a custom event
+            window.dispatchEvent(new CustomEvent('resume-section-updated', {
+                detail: { section: 'experience' }
+            }));
             
         } catch (error) {
             console.error('Failed to optimize bullets:', error);
