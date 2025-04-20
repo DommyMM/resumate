@@ -163,109 +163,206 @@ export default function TemplatesPage() {
 
 // Template preview component
 function TemplatePreview({ id, style }) {
-    // Different template previews based on style
+    // Different template previews based on style and id
     const renderPreview = () => {
-        switch (style) {
-        case 'classic':
+        // Base styles
+        if (style === 'classic') {
+            // Academic Scholar - emphasize education
             return (
             <div className="p-4">
                 {/* Header */}
                 <div className="h-8 w-48 bg-gray-800 dark:bg-gray-900 rounded mb-4 mx-auto"></div>
                 <div className="h-4 w-3/4 bg-gray-300 dark:bg-gray-500 rounded mb-2 mx-auto"></div>
                 
-                {/* Section - Education */}
-                <div className="h-5 w-32 bg-blue-600 rounded mb-3 mt-6"></div>
+                {/* Section - Education - LARGER for Academic Scholar */}
+                <div className="h-6 w-36 bg-blue-600 rounded mb-3 mt-4 font-bold"></div>
                 <div className="border-t-2 border-black dark:border-gray-400 w-full mb-3"></div>
-                <div className="flex justify-between mb-1">
-                <div className="h-4 w-32 bg-gray-700 dark:bg-gray-900 rounded"></div>
-                <div className="h-4 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
+                <div className="flex justify-between mb-2">
+                    <div className="h-5 w-36 bg-gray-700 dark:bg-gray-900 rounded"></div>
+                    <div className="h-4 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
                 </div>
-                <div className="h-3 w-48 bg-gray-300 dark:bg-gray-500 rounded mb-3"></div>
+                <div className="h-4 w-48 bg-gray-300 dark:bg-gray-500 rounded mb-2"></div>
+                <div className="h-3 w-full bg-gray-200 dark:bg-gray-500 rounded mb-2"></div>
+                <div className="h-3 w-full bg-gray-200 dark:bg-gray-500 rounded mb-3"></div>
                 
-                {/* Section - Experience */}
-                <div className="h-5 w-32 bg-blue-600 rounded mb-3 mt-6"></div>
+                {/* Section - Experience - smaller for Academic Scholar */}
+                <div className="h-5 w-32 bg-blue-600 rounded mb-3 mt-4"></div>
                 <div className="border-t-2 border-black dark:border-gray-400 w-full mb-3"></div>
                 <div className="flex justify-between mb-1">
-                <div className="h-4 w-40 bg-gray-700 dark:bg-gray-900 rounded"></div>
-                <div className="h-4 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
+                    <div className="h-4 w-40 bg-gray-700 dark:bg-gray-900 rounded"></div>
+                    <div className="h-4 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
                 </div>
                 <div className="h-3 w-48 bg-gray-300 dark:bg-gray-500 rounded mb-2"></div>
                 <div className="h-2 w-full bg-gray-200 dark:bg-gray-500 rounded mb-1"></div>
-                <div className="h-2 w-full bg-gray-200 dark:bg-gray-500 rounded mb-1"></div>
             </div>
             );
-            
-        case 'modern':
+        } else if (style === 'modern') {
+            // Research Specialist or Technical Expert
             return (
             <div className="p-4">
                 {/* Header */}
                 <div className="h-10 w-48 bg-blue-600 rounded-md mb-4 mx-auto"></div>
                 <div className="h-4 w-3/4 bg-gray-300 dark:bg-gray-500 rounded mb-2 mx-auto"></div>
                 
-                {/* Section - Education */}
-                <div className="h-5 w-32 bg-blue-600 rounded-md mb-3 mt-6"></div>
-                <div className="border-t-2 border-blue-600 w-full mb-3"></div>
-                <div className="flex justify-between mb-1">
-                <div className="h-4 w-32 bg-gray-700 dark:bg-gray-900 rounded"></div>
-                <div className="h-4 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
-                </div>
-                <div className="h-3 w-48 bg-gray-300 dark:bg-gray-500 rounded mb-3"></div>
-                
-                {/* Section - Experience */}
-                <div className="h-5 w-32 bg-blue-600 rounded-md mb-3 mt-6"></div>
-                <div className="border-t-2 border-blue-600 w-full mb-3"></div>
-                <div className="flex justify-between mb-1">
-                <div className="h-4 w-40 bg-gray-700 dark:bg-gray-900 rounded"></div>
-                <div className="h-4 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
-                </div>
-                <div className="h-3 w-48 bg-gray-300 dark:bg-gray-500 rounded mb-2"></div>
-                <div className="h-2 w-full bg-gray-200 dark:bg-gray-500 rounded mb-1"></div>
-                <div className="h-2 w-full bg-gray-200 dark:bg-gray-500 rounded mb-1"></div>
+                {/* Adjust sections based on template ID */}
+                {id === 'researcher' ? (
+                    // Research Specialist - emphasize projects
+                    <>
+                        {/* Projects Section - LARGER */}
+                        <div className="h-6 w-32 bg-blue-600 rounded-md mb-3 mt-4 font-bold"></div>
+                        <div className="border-t-2 border-blue-600 w-full mb-3"></div>
+                        <div className="flex justify-between mb-2">
+                            <div className="h-5 w-40 bg-gray-700 dark:bg-gray-900 rounded"></div>
+                            <div className="h-4 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
+                        </div>
+                        <div className="h-4 w-full bg-gray-300 dark:bg-gray-500 rounded mb-1"></div>
+                        <div className="h-4 w-full bg-gray-300 dark:bg-gray-500 rounded mb-1"></div>
+                        <div className="h-4 w-3/4 bg-gray-300 dark:bg-gray-500 rounded mb-3"></div>
+                        
+                        {/* Experience Section - smaller */}
+                        <div className="h-5 w-32 bg-blue-600 rounded-md mb-3 mt-4"></div>
+                        <div className="border-t-2 border-blue-600 w-full mb-3"></div>
+                        <div className="flex justify-between mb-1">
+                            <div className="h-4 w-32 bg-gray-700 dark:bg-gray-900 rounded"></div>
+                            <div className="h-4 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
+                        </div>
+                        <div className="h-3 w-48 bg-gray-300 dark:bg-gray-500 rounded mb-3"></div>
+                    </>
+                ) : (
+                    // Technical Expert - emphasize skills
+                    <>
+                        {/* Skills Section - LARGER */}
+                        <div className="h-6 w-36 bg-blue-600 rounded-md mb-3 mt-4 font-bold"></div>
+                        <div className="border-t-2 border-blue-600 w-full mb-3"></div>
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                            <div>
+                                <div className="h-4 w-24 bg-gray-700 dark:bg-gray-900 rounded mb-1"></div>
+                                <div className="h-3 w-full bg-gray-300 dark:bg-gray-500 rounded"></div>
+                            </div>
+                            <div>
+                                <div className="h-4 w-24 bg-gray-700 dark:bg-gray-900 rounded mb-1"></div>
+                                <div className="h-3 w-full bg-gray-300 dark:bg-gray-500 rounded"></div>
+                            </div>
+                        </div>
+                        
+                        {/* Experience Section - standard */}
+                        <div className="h-5 w-32 bg-blue-600 rounded-md mb-3 mt-4"></div>
+                        <div className="border-t-2 border-blue-600 w-full mb-3"></div>
+                        <div className="flex justify-between mb-1">
+                            <div className="h-4 w-40 bg-gray-700 dark:bg-gray-900 rounded"></div>
+                            <div className="h-4 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
+                        </div>
+                        <div className="h-3 w-48 bg-gray-300 dark:bg-gray-500 rounded mb-2"></div>
+                        <div className="h-2 w-full bg-gray-200 dark:bg-gray-500 rounded mb-1"></div>
+                    </>
+                )}
             </div>
             );
-        
-        case 'professional':
-            return (
-            <div className="p-4">
-                {/* Header */}
-                <div className="flex justify-center mb-4">
-                <div className="h-8 w-40 bg-gray-700 dark:bg-gray-900 rounded"></div>
+        } else if (style === 'professional') {
+            // Industry Professional, Startup Innovator, or Minimalist
+            if (id === 'professional') {
+                // Industry Professional - emphasize experience
+                return (
+                <div className="p-4">
+                    {/* Header */}
+                    <div className="flex justify-center mb-4">
+                        <div className="h-8 w-40 bg-gray-700 dark:bg-gray-900 rounded"></div>
+                    </div>
+                    <div className="flex justify-center gap-4 mb-4">
+                        <div className="h-3 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
+                        <div className="h-3 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
+                        <div className="h-3 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
+                    </div>
+                    
+                    {/* Experience Section - LARGER */}
+                    <div className="h-6 w-36 bg-gray-700 dark:bg-gray-900 rounded mb-3 mt-4 font-bold"></div>
+                    <div className="border-t border-gray-400 w-full mb-3"></div>
+                    <div className="flex justify-between mb-2">
+                        <div className="h-5 w-40 bg-gray-700 dark:bg-gray-900 rounded"></div>
+                        <div className="h-4 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
+                    </div>
+                    <div className="h-3 w-full bg-gray-300 dark:bg-gray-500 rounded mb-1"></div>
+                    <div className="h-3 w-full bg-gray-300 dark:bg-gray-500 rounded mb-1"></div>
+                    <div className="h-3 w-3/4 bg-gray-300 dark:bg-gray-500 rounded mb-3"></div>
+                    
+                    {/* Education Section - smaller */}
+                    <div className="h-5 w-32 bg-gray-700 dark:bg-gray-900 rounded mb-3 mt-4"></div>
+                    <div className="border-t border-gray-400 w-full mb-3"></div>
+                    <div className="flex justify-between mb-1">
+                        <div className="h-4 w-32 bg-gray-700 dark:bg-gray-900 rounded"></div>
+                        <div className="h-4 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
+                    </div>
+                    <div className="h-3 w-48 bg-gray-300 dark:bg-gray-500 rounded mb-3"></div>
                 </div>
-                <div className="flex justify-center gap-4 mb-4">
-                <div className="h-3 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
-                <div className="h-3 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
-                <div className="h-3 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
+                );
+            } else if (id === 'startup') {
+                // Startup Innovator - balance projects and experience
+                return (
+                <div className="p-4">
+                    {/* Header */}
+                    <div className="flex justify-center mb-4">
+                        <div className="h-8 w-40 bg-gray-700 dark:bg-gray-900 rounded"></div>
+                    </div>
+                    <div className="flex justify-center gap-4 mb-4">
+                        <div className="h-3 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
+                        <div className="h-3 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
+                        <div className="h-3 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
+                    </div>
+                    
+                    {/* Experience Section */}
+                    <div className="h-5 w-32 bg-gray-700 dark:bg-gray-900 rounded mb-3 mt-4"></div>
+                    <div className="border-t border-gray-400 w-full mb-3"></div>
+                    <div className="flex justify-between mb-1">
+                        <div className="h-4 w-40 bg-gray-700 dark:bg-gray-900 rounded"></div>
+                        <div className="h-4 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
+                    </div>
+                    <div className="h-3 w-full bg-gray-300 dark:bg-gray-500 rounded mb-3"></div>
+                    
+                    {/* Projects Section - equally emphasized */}
+                    <div className="h-5 w-32 bg-gray-700 dark:bg-gray-900 rounded mb-3 mt-4"></div>
+                    <div className="border-t border-gray-400 w-full mb-3"></div>
+                    <div className="flex justify-between mb-1">
+                        <div className="h-4 w-40 bg-gray-700 dark:bg-gray-900 rounded"></div>
+                        <div className="h-4 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
+                    </div>
+                    <div className="h-3 w-full bg-gray-300 dark:bg-gray-500 rounded mb-3"></div>
                 </div>
-                
-                {/* Section - Education */}
-                <div className="h-5 w-32 bg-gray-700 dark:bg-gray-900 rounded mb-3 mt-4"></div>
-                <div className="border-t border-gray-400 w-full mb-3"></div>
-                <div className="flex justify-between mb-1">
-                <div className="h-4 w-32 bg-gray-700 dark:bg-gray-900 rounded"></div>
-                <div className="h-4 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
+                );
+            } else {
+                // Minimalist - cleaner, simpler
+                return (
+                <div className="p-4">
+                    {/* Header - simpler */}
+                    <div className="flex justify-center mb-6">
+                        <div className="h-7 w-36 bg-gray-800 dark:bg-gray-900 rounded"></div>
+                    </div>
+                    <div className="flex justify-center gap-6 mb-6">
+                        <div className="h-3 w-20 bg-gray-300 dark:bg-gray-500 rounded"></div>
+                        <div className="h-3 w-20 bg-gray-300 dark:bg-gray-500 rounded"></div>
+                        <div className="h-3 w-20 bg-gray-300 dark:bg-gray-500 rounded"></div>
+                    </div>
+                    
+                    {/* Minimal section dividers with more whitespace */}
+                    <div className="h-5 w-28 bg-gray-700 dark:bg-gray-900 rounded mb-2"></div>
+                    <div className="border-t border-gray-300 w-full mb-4"></div>
+                    <div className="h-3 w-full bg-gray-200 dark:bg-gray-600 rounded mb-2"></div>
+                    <div className="h-3 w-2/3 bg-gray-200 dark:bg-gray-600 rounded mb-6"></div>
+                    
+                    <div className="h-5 w-28 bg-gray-700 dark:bg-gray-900 rounded mb-2"></div>
+                    <div className="border-t border-gray-300 w-full mb-4"></div>
+                    <div className="h-3 w-full bg-gray-200 dark:bg-gray-600 rounded mb-2"></div>
+                    <div className="h-3 w-3/4 bg-gray-200 dark:bg-gray-600 rounded mb-2"></div>
                 </div>
-                <div className="h-3 w-48 bg-gray-300 dark:bg-gray-500 rounded mb-3"></div>
-                
-                {/* Section - Experience */}
-                <div className="h-5 w-32 bg-gray-700 dark:bg-gray-900 rounded mb-3 mt-4"></div>
-                <div className="border-t border-gray-400 w-full mb-3"></div>
-                <div className="flex justify-between mb-1">
-                <div className="h-4 w-40 bg-gray-700 dark:bg-gray-900 rounded"></div>
-                <div className="h-4 w-24 bg-gray-300 dark:bg-gray-500 rounded"></div>
-                </div>
-                <div className="h-3 w-48 bg-gray-300 dark:bg-gray-500 rounded mb-2"></div>
-                <div className="h-2 w-full bg-gray-200 dark:bg-gray-500 rounded mb-1"></div>
-                <div className="h-2 w-full bg-gray-200 dark:bg-gray-500 rounded mb-1"></div>
-            </div>
-            );
-        
-        default:
-            return (
-            <div className="p-4 flex justify-center items-center h-full">
-                <div className="text-gray-500">Preview not available</div>
-            </div>
-            );
+                );
+            }
         }
+        
+        // Default fallback
+        return (
+        <div className="p-4 flex justify-center items-center h-full">
+            <div className="text-gray-500">Preview not available</div>
+        </div>
+        );
     };
 
     return (
