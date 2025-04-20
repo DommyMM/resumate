@@ -51,6 +51,14 @@ export interface Resume {
     certifications?: any[];
 }
 
+function escapeLaTeXChars(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/%/g, '\\%')
+    .replace(/\$/g, '\\$')
+    .replace(/&/g, '\\&');
+}
+
 export function generateLaTeX(data: Resume): string {
   // Template header and preamble
     let latex = `
@@ -131,15 +139,15 @@ export function generateLaTeX(data: Resume): string {
     const { name, phone, email, linkedin, github } = data.personalInfo;
     latex += `
     \\begin{center}
-        \\textbf{\\Huge \\scshape ${name || 'Full Name'}} \\\\ \\vspace{1pt}
-        \\small ${phone || 'Phone'} $|$ \\href{mailto:${email || 'email@example.com'}}{\\underline{${email || 'email@example.com'}}}`;
+        \\textbf{\\Huge \\scshape ${escapeLaTeXChars(name || 'Full Name')}} \\\\ \\vspace{1pt}
+        \\small ${escapeLaTeXChars(phone || 'Phone')} $|$ \\href{mailto:${email || 'email@example.com'}}{\\underline{${escapeLaTeXChars(email || 'email@example.com')}}}`;
         
     if (linkedin) {
-        latex += ` $|$ \\href{https://linkedin.com/in/${linkedin}}{\\underline{linkedin.com/in/${linkedin}}}`;
+        latex += ` $|$ \\href{https://linkedin.com/in/${linkedin}}{\\underline{linkedin.com/in/${escapeLaTeXChars(linkedin)}}}`;
     }
     
     if (github) {
-        latex += ` $|$ \\href{https://github.com/${github}}{\\underline{github.com/${github}}}`;
+        latex += ` $|$ \\href{https://github.com/${github}}{\\underline{github.com/${escapeLaTeXChars(github)}}}`;
     }
     
     latex += `
@@ -156,8 +164,8 @@ export function generateLaTeX(data: Resume): string {
     data.education.forEach(edu => {
         latex += `
         \\resumeSubheading
-        {${edu.institution}}{${edu.location}}
-        {${edu.degree}}{${edu.dates}}`;
+        {${escapeLaTeXChars(edu.institution)}}{${escapeLaTeXChars(edu.location)}}
+        {${escapeLaTeXChars(edu.degree)}}{${escapeLaTeXChars(edu.dates)}}`;
     });
     
     latex += `
@@ -172,16 +180,16 @@ export function generateLaTeX(data: Resume): string {
     \\resumeSubHeadingListStart`;
 
     data.experience.forEach(exp => {
-        const dates = exp.dates || `${exp.startDate || ''} - ${exp.endDate || 'Present'}`;
+        const dates = exp.dates || `${escapeLaTeXChars(exp.startDate || '')} - ${escapeLaTeXChars(exp.endDate || 'Present')}`;
         latex += `
         \\resumeSubheading
-        {${exp.position}}{${dates}}
-        {${exp.company}}{${exp.location}}
+        {${escapeLaTeXChars(exp.position)}}{${dates}}
+        {${escapeLaTeXChars(exp.company)}}{${escapeLaTeXChars(exp.location)}}
         \\resumeItemListStart`;
         
         exp.bullets.forEach(bullet => {
         latex += `
-            \\resumeItem{${bullet}}`;
+            \\resumeItem{${escapeLaTeXChars(bullet)}}`;
         });
         
         latex += `
@@ -202,12 +210,12 @@ export function generateLaTeX(data: Resume): string {
     data.projects.forEach(project => {
         latex += `
         \\resumeProjectHeading
-            {\\textbf{${project.name}} $|$ \\emph{${project.technologies}}}{${project.dates}}
+            {\\textbf{${escapeLaTeXChars(project.name)}} $|$ \\emph{${escapeLaTeXChars(project.technologies)}}}{${escapeLaTeXChars(project.dates)}}
             \\resumeItemListStart`;
         
         project.bullets.forEach(bullet => {
         latex += `
-                \\resumeItem{${bullet}}`;
+                \\resumeItem{${escapeLaTeXChars(bullet)}}`;
         });
         
         latex += `
@@ -225,10 +233,10 @@ export function generateLaTeX(data: Resume): string {
     \\section{Technical Skills}
     \\begin{itemize}[leftmargin=0.15in, label={}]
         \\small{\\item{
-        \\textbf{Languages}{: ${data.skills.languages.join(', ')}} \\\\
-        \\textbf{Frameworks}{: ${data.skills.frameworks.join(', ')}} \\\\
-        \\textbf{Developer Tools}{: ${data.skills.devTools.join(', ')}} \\\\
-        \\textbf{Libraries}{: ${data.skills.libraries.join(', ')}}
+        \\textbf{Languages}{: ${data.skills.languages.map(escapeLaTeXChars).join(', ')}} \\\\
+        \\textbf{Frameworks}{: ${data.skills.frameworks.map(escapeLaTeXChars).join(', ')}} \\\\
+        \\textbf{Developer Tools}{: ${data.skills.devTools.map(escapeLaTeXChars).join(', ')}} \\\\
+        \\textbf{Libraries}{: ${data.skills.libraries.map(escapeLaTeXChars).join(', ')}}
         }}
     \\end{itemize}
 

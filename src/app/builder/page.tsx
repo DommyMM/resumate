@@ -9,20 +9,10 @@ import PDFViewer from '@/components/builder/PDFViewer';
 import FeedbackPanel from '@/components/builder/FeedbackPanel';
 import PersonalInfoForm from '@/components/builder/PersonalInfoForm';
 import EducationForm from '@/components/builder/Education';
+import WorkExperienceForm from '@/components/builder/WorkExperience';
 
 // Import the LaTeX generator
 import { generateLaTeX } from '@/types/resume';
-
-// Mock API response for AI feedback
-const mockAIFeedback = {
-    personal: "Consider adding a professional email address that includes your name for better recognition.",
-    summary: "Your summary could be more impactful. Try highlighting specific achievements with metrics rather than general statements.",
-    experience: "Use more action verbs and quantify your accomplishments. For example, 'Increased sales by 20%' is stronger than 'Responsible for sales'.",
-    education: "Include relevant coursework or academic achievements that align with your target position.",
-    skills: "Organize your skills by proficiency level and ensure they're relevant to the job you're applying for.",
-    projects: "For each project, highlight the problem solved, technology used, and the outcome or impact.",
-    certifications: "Include the year obtained and mention if the certification is still active."
-};
 
 // Resume section definitions
 const sections = [
@@ -128,22 +118,40 @@ export default function BuilderPage() {
             [section]: data,
         }));
 
-        // Only set feedback for non-education sections
+        // For sections that need feedback from the API
         if (section !== 'education') {
-            // Get feedback immediately - no need for additional waiting
-            // This would be an actual API call in production
-            setFeedback(mockAIFeedback[section as keyof typeof mockAIFeedback]);
+            try {
+                // This would be an actual API call in production
+                const response = await fetch("http://localhost:8000/feedback", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        section: section,
+                        data: data
+                    }),
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    setFeedback(result.feedback || '');
+                } else {
+                    console.error('Failed to get feedback:', response.statusText);
+                    setFeedback('');
+                }
+            } catch (error) {
+                console.error('Error getting feedback:', error);
+                setFeedback('');
+            }
         } else {
             // Clear any existing feedback if we're in education section
             setFeedback('');
         }
         
-        // Give a small delay so the user sees the feedback
-        // We can remove this in production when using real API calls
-        setTimeout(() => {
-            setIsProcessing(false);
-        }, 500);
-    }, [resume, mockAIFeedback]);
+        // Set processing to false
+        setIsProcessing(false);
+    }, [resume]);
 
     // Handle generate LaTeX - simplified since we now use useMemo for LaTeX generation
     const handleGenerateLatex = useCallback(() => {
@@ -192,6 +200,10 @@ export default function BuilderPage() {
         updateSectionData('education', data);
     }, [updateSectionData]);
 
+    const updateExperience = useCallback((data: Experience[]) => {
+        updateSectionData('experience', data);
+    }, [updateSectionData]);
+
     // Render current section form
     const renderCurrentSectionForm = () => {
         const currentSection = sections[currentStep];
@@ -219,63 +231,12 @@ export default function BuilderPage() {
                 
             case 'experience':
                 return (
-                    <div>
-                        <h3 className="text-lg font-medium mb-4">{currentSection.label}</h3>
-                        <p className="mb-6 text-gray-600 dark:text-gray-400">{currentSection.description}</p>
-                        
-                        {/* Sample experience entry form */}
-                        <div className="mb-6 p-4 border border-gray-200 rounded-lg dark:border-gray-700">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                {/* Form fields */}
-                            </div>
-                            
-                            <div className="flex justify-end">
-                                <button 
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                                    onClick={() => {
-                                        // Sample data for demonstration
-                                        const newExp: Experience = {
-                                            id: Date.now().toString(),
-                                            position: "Software Engineer",
-                                            company: "Acme Corp",
-                                            location: "San Francisco, CA",
-                                            startDate: "Jan 2020",
-                                            endDate: "Present",
-                                            isCurrentPosition: true,
-                                            bullets: [
-                                                "Developed a new feature that increased user engagement by 20%",
-                                                "Led a team of 3 developers to deliver project ahead of schedule",
-                                                "Optimized database queries resulting in 30% performance improvement"
-                                            ]
-                                        };
-                                        updateSectionData('experience', [...resume.experience, newExp]);
-                                    }}
-                                >
-                                    Add Experience
-                                </button>
-                            </div>
-                        </div>
-                        
-                        {/* List existing experience entries */}
-                        {resume.experience.length > 0 && (
-                            <div className="mt-6">
-                                <h4 className="font-medium mb-2">Added Experience:</h4>
-                                <div className="space-y-3">
-                                    {resume.experience.map((exp) => (
-                                        <div key={exp.id} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
-                                            <div className="flex justify-between">
-                                                <div className="font-medium">{exp.position} at {exp.company}</div>
-                                                <div className="text-sm text-gray-500">{exp.startDate} - {exp.endDate}</div>
-                                            </div>
-                                            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                                {exp.bullets.length} achievements listed
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                    <WorkExperienceForm
+                        data={resume.experience}
+                        updateData={updateExperience}
+                        sectionLabel={currentSection.label}
+                        sectionDescription={currentSection.description}
+                    />
                 );
                 
             // For brevity, simple placeholder for other sections

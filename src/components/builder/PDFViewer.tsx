@@ -92,12 +92,12 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
             {/* Content area - with background styling */}
             <div className="flex-grow overflow-auto relative bg-white dark:bg-gray-800 rounded-b-lg shadow-md">
                 {currentTab === 'latex' && latexContent ? (
-                    <div className="p-4">
-                        <div className="bg-gray-50 dark:bg-gray-900 rounded p-4 overflow-auto h-full relative">
-                            {/* Copy button */}
+                    <div className="p-4 relative">
+                        {/* Copy button – now sticky */}
+                        <div className="sticky top-2 z-10 flex justify-end">
                             <button 
                                 onClick={copyToClipboard}
-                                className="absolute top-2 right-2 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-md transition-colors flex items-center gap-1 shadow-md z-10"
+                                className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-md transition-colors flex items-center gap-1 shadow-md"
                             >
                                 {copySuccess ? (
                                     <>
@@ -116,7 +116,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
                                     </>
                                 )}
                             </button>
-                            
+                        </div>
+                        <div className="bg-gray-50 dark:bg-gray-900 rounded p-4 overflow-auto h-full mt-2">
                             <pre className="text-xs font-mono whitespace-pre-wrap text-gray-800 dark:text-gray-200 pt-8">
                                 {latexContent}
                             </pre>
