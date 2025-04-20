@@ -8,6 +8,7 @@ import { Resume, PersonalInfo, Education, Experience, Project, Skills } from '@/
 import PDFViewer from '@/components/builder/PDFViewer';
 import FeedbackPanel from '@/components/builder/FeedbackPanel';
 import PersonalInfoForm from '@/components/builder/PersonalInfoForm';
+import EducationForm from '@/components/builder/Education';
 
 // Import the LaTeX generator
 import { generateLaTeX } from '@/types/resume';
@@ -31,9 +32,9 @@ const sections = [
         description: 'Start with your basic contact information'
     },
     { 
-        id: 'summary', 
-        label: 'Professional Summary',
-        description: 'A brief overview of your professional background and goals'
+        id: 'education', 
+        label: 'Education',
+        description: 'Your academic background and qualifications'
     },
     { 
         id: 'experience', 
@@ -41,24 +42,19 @@ const sections = [
         description: 'List your work history, starting with the most recent position'
     },
     { 
-        id: 'education', 
-        label: 'Education',
-        description: 'Your academic background and qualifications'
-    },
-    { 
-        id: 'skills', 
-        label: 'Skills',
-        description: 'Technical and professional skills relevant to your field'
-    },
-    { 
         id: 'projects', 
         label: 'Projects',
         description: 'Highlight significant projects that showcase your abilities'
     },
     { 
-        id: 'certifications', 
-        label: 'Certifications',
-        description: 'Professional certifications and credentials'
+        id: 'skills', 
+        label: 'Technical Skills',
+        description: 'Technical and professional skills relevant to your field'
+    },
+    { 
+        id: 'commendations', 
+        label: 'Commendations',
+        description: 'Awards, recognitions, and professional achievements'
     },
 ];
 
@@ -75,7 +71,6 @@ export default function BuilderPage() {
             name: '',
             email: '',
             phone: '',
-            location: '',
             linkedin: '',
             github: '',
             website: '',
@@ -132,10 +127,16 @@ export default function BuilderPage() {
             ...prev,
             [section]: data,
         }));
-    
-        // Get feedback immediately - no need for additional waiting
-        // This would be an actual API call in production
-        setFeedback(mockAIFeedback[section as keyof typeof mockAIFeedback]);
+
+        // Only set feedback for non-education sections
+        if (section !== 'education') {
+            // Get feedback immediately - no need for additional waiting
+            // This would be an actual API call in production
+            setFeedback(mockAIFeedback[section as keyof typeof mockAIFeedback]);
+        } else {
+            // Clear any existing feedback if we're in education section
+            setFeedback('');
+        }
         
         // Give a small delay so the user sees the feedback
         // We can remove this in production when using real API calls
@@ -187,8 +188,8 @@ export default function BuilderPage() {
         updateSectionData('personalInfo', data);
     }, [updateSectionData]);
 
-    const updateSummary = useCallback((data: string) => {
-        updateSectionData('summary', data);
+    const updateEducation = useCallback((data: Education[]) => {
+        updateSectionData('education', data);
     }, [updateSectionData]);
 
     // Render current section form
@@ -201,6 +202,16 @@ export default function BuilderPage() {
                     <PersonalInfoForm 
                         data={resume.personalInfo}
                         updateData={updatePersonalInfo}
+                        sectionLabel={currentSection.label}
+                        sectionDescription={currentSection.description}
+                    />
+                );
+                
+            case 'education':
+                return (
+                    <EducationForm
+                        data={resume.education}
+                        updateData={updateEducation}
                         sectionLabel={currentSection.label}
                         sectionDescription={currentSection.description}
                     />
