@@ -1,169 +1,120 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
-import type { PDFDocumentProxy } from 'pdfjs-dist';
+import React, { useState, useRef } from 'react';
 
 interface PDFViewerProps {
-    pdfUrl: string | null;
+    pdfUrl?: string | null;
+    latexContent?: string | null;
     isProcessing?: boolean;
 }
 
-const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl, isProcessing = false }) => {
-    const [pdfDocument, setPdfDocument] = useState<PDFDocumentProxy | null>(null);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [numPages, setNumPages] = useState(0);
-    const [scale, setScale] = useState(1.2);
+const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl, latexContent, isProcessing = false }) => {
+    const [currentTab, setCurrentTab] = useState<'preview' | 'latex'>('latex');
+    const [copySuccess, setCopySuccess] = useState<boolean>(false);
+    
+    // For future PDF implementation
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-    const [pdfjsLib, setPdfjsLib] = useState<typeof import('pdfjs-dist') | null>(null);
-
-    // Load PDF.js library
-    useEffect(() => {
-        const loadPdfJs = async () => {
-            const pdfjs = await import('pdfjs-dist');
-            pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
-            setPdfjsLib(pdfjs);
-        };
-        
-        loadPdfJs();
-    }, []);
-
-    // Load PDF when URL changes
-    useEffect(() => {
-        if (pdfUrl && pdfjsLib) {
-            loadPdfDocument(pdfUrl);
-        } else if (!pdfUrl) {
-            setPdfDocument(null);
-        }
-        
-        // Cleanup function
-        return () => {
-            if (pdfDocument) {
-                pdfDocument.destroy();
+    
+    // Copy to clipboard function
+    const copyToClipboard = async () => {
+        if (latexContent) {
+            try {
+                await navigator.clipboard.writeText(latexContent);
+                setCopySuccess(true);
+                setTimeout(() => setCopySuccess(false), 2000);
+            } catch (err) {
+                console.error('Failed to copy: ', err);
             }
-        };
-    }, [pdfUrl, pdfjsLib]);
-
-    // Render PDF page when document, page, or scale changes
-    useEffect(() => {
-        if (pdfDocument && canvasRef.current) {
-        renderPage();
-        }
-    }, [pdfDocument, currentPage, scale]);
-
-    // Load PDF document
-    const loadPdfDocument = async (url: string) => {
-        if (!pdfjsLib) return;
-        
-        try {
-            const loadingTask = pdfjsLib.getDocument(url);
-            const pdf = await loadingTask.promise;
-            setPdfDocument(pdf);
-            setNumPages(pdf.numPages);
-            setCurrentPage(1);
-        } catch (error) {
-            console.error('Error loading PDF document:', error);
         }
     };
-
-    // Render the current page
-    const renderPage = async () => {
-        if (!pdfDocument || !canvasRef.current) return;
-
-        try {
-            const page = await pdfDocument.getPage(currentPage);
-            const viewport = page.getViewport({ scale });
-            const canvas = canvasRef.current;
-            const context = canvas.getContext('2d');
-
-            if (!context) return;
-
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
-
-            // Render PDF page into canvas context
-            await page.render({
-                canvasContext: context,
-                viewport: viewport
-            }).promise;
-        } catch (error) {
-            console.error('Error rendering PDF page:', error);
-        }
-    };
-
-    // Navigate to previous page
-    const handlePreviousPage = () => {
-        if (currentPage > 1) {
-        setCurrentPage(currentPage - 1);
-        }
-    };
-
-    // Navigate to next page
-    const handleNextPage = () => {
-        if (pdfDocument && currentPage < numPages) {
-        setCurrentPage(currentPage + 1);
-        }
-    };
-
-    // Change zoom level
-    const handleZoomChange = (newScale: number) => {
-        setScale(newScale);
-    };
+    
+    if (isProcessing) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+                    <p className="mt-4 text-gray-600 dark:text-gray-300">Processing your resume...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden h-[calc(100vh-16rem)]">
-            {isProcessing ? (
-                <div className="flex items-center justify-center h-full">
-                    <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-                        <p className="mt-4 text-gray-600 dark:text-gray-300">Generating your resume...</p>
-                    </div>
-                </div>
-            ) : pdfUrl ? (
-                <div ref={containerRef} className="flex flex-col h-full">
-                    <div className="flex justify-between items-center p-3 bg-gray-100 dark:bg-gray-700">
-                        <div>
+        <div className="overflow-hidden h-[calc(100vh-16rem)] flex flex-col">
+            {/* Tab navigation - without background */}
+            <div className="flex items-center border-b border-gray-200 dark:border-gray-700">
+                <button
+                    onClick={() => setCurrentTab('latex')}
+                    className={`px-4 py-2 ${
+                        currentTab === 'latex'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                    } font-medium rounded-t-lg`}
+                >
+                    LaTeX Code
+                </button>
+                <button
+                    onClick={() => setCurrentTab('preview')}
+                    className={`px-4 py-2 ${
+                        currentTab === 'preview'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                    } font-medium rounded-t-lg ml-2`}
+                    disabled={!pdfUrl}
+                >
+                    PDF Preview (coming soon)
+                </button>
+            </div>
+        
+            {/* Content area - with background styling */}
+            <div className="flex-grow overflow-auto relative bg-white dark:bg-gray-800 rounded-b-lg shadow-md">
+                {currentTab === 'latex' && latexContent ? (
+                    <div className="p-4 relative">
+                        {/* Copy button - now sticky */}
+                        <div className="sticky top-2 z-10 flex justify-end">
                             <button 
-                                onClick={handlePreviousPage}
-                                disabled={currentPage <= 1}
-                                className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50 mr-2"
+                                onClick={copyToClipboard}
+                                className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-md transition-colors flex items-center gap-1 shadow-md"
                             >
-                                Previous
+                                {copySuccess ? (
+                                    <>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                        </svg>
+                                        Copied!
+                                    </>
+                                ) : (
+                                    <>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" />
+                                            <path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z" />
+                                        </svg>
+                                        Copy
+                                    </>
+                                )}
                             </button>
-                            <button 
-                                onClick={handleNextPage}
-                                disabled={currentPage >= numPages}
-                                className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
-                            >
-                                Next
-                            </button>
-                            <span className="ml-4 text-sm">
-                                Page {currentPage} of {numPages}
-                            </span>
                         </div>
-                        <div>
-                            <select 
-                                value={scale} 
-                                onChange={(e) => handleZoomChange(parseFloat(e.target.value))}
-                                className="px-2 py-1 border rounded bg-white dark:bg-gray-800"
-                            >
-                                <option value={0.8}>80%</option>
-                                <option value={1}>100%</option>
-                                <option value={1.2}>120%</option>
-                                <option value={1.5}>150%</option>
-                                <option value={2}>200%</option>
-                            </select>
+                        
+                        <div className="bg-gray-50 dark:bg-gray-900 rounded p-4 overflow-auto h-full mt-2">
+                            <pre className="text-xs font-mono whitespace-pre-wrap text-gray-800 dark:text-gray-200">
+                                {latexContent}
+                            </pre>
                         </div>
                     </div>
-                    <div className="flex-1 overflow-auto p-4 flex justify-center">
-                        <canvas ref={canvasRef} className="shadow-lg" />
+                ) : currentTab === 'preview' && pdfUrl ? (
+                    <div className="p-4 text-center">
+                        <p className="text-gray-600 dark:text-gray-400">
+                            PDF preview will be implemented in the final version.
+                        </p>
+                        <canvas ref={canvasRef} className="mx-auto"></canvas>
                     </div>
-                </div>
-            ) : (
-                <div className="flex items-center justify-center h-full">
-                    <p className="text-gray-500 dark:text-gray-400">No PDF to display. Enter details!</p>
-                </div>
-            )}
+                ) : (
+                    <div className="flex items-center justify-center h-full">
+                        <p className="text-gray-600 dark:text-gray-400">No content to display</p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

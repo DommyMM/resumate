@@ -1,73 +1,244 @@
-export interface Resume {
-    personalInfo: PersonalInfo;
-    summary: string;
-    experience: ExperienceItem[];
-    education: EducationItem[];
-    skills: SkillCategory[];
-    projects: ProjectItem[];
-    certifications: CertificationItem[];
-}
-
 export interface PersonalInfo {
     name: string;
-    email: string;
     phone: string;
-    location: string;
+    email: string;
+    location?: string;
     linkedin?: string;
     github?: string;
     website?: string;
 }
 
-export interface ExperienceItem {
-    id: string;
-    position: string;
-    company: string;
-    location: string;
-    startDate: string;
-    endDate: string;
-    isCurrentPosition: boolean;
-    bullets: string[];
-}
-
-export interface EducationItem {
-    id: string;
+export interface Education {
     institution: string;
     location: string;
     degree: string;
-    fieldOfStudy: string;
-    startDate: string;
-    endDate: string;
-    isCurrentlyEnrolled: boolean;
-    gpa?: string;
+    dates: string;
 }
 
-export interface SkillCategory {
-    category: string;
-    skills: string[];
-}
-
-export interface ProjectItem {
-    id: string;
-    title: string;
-    technologies: string[];
+export interface Experience {
+    id?: string;
+    position: string;
+    company: string;
+    location: string;
     startDate?: string;
     endDate?: string;
+    dates?: string;
+    isCurrentPosition?: boolean;
     bullets: string[];
-    link?: string;
 }
 
-export interface CertificationItem {
-    id: string;
+export interface Project {
+    id?: string;
     name: string;
-    issuer: string;
-    date: string;
-    expiration?: string;
-    link?: string;
+    technologies: string;
+    dates: string;
+    bullets: string[];
 }
 
-export interface ResumeTemplate {
-    id: string;
-    name: string;
-    previewImage: string;
-    style: 'modern' | 'classic' | 'minimalist' | 'professional';
+export interface Skills {
+    languages: string[];
+    frameworks: string[];
+    devTools: string[];
+    libraries: string[];
+}
+
+export interface Resume {
+    personalInfo: PersonalInfo;
+    summary?: string;
+    experience: Experience[];
+    education: Education[];
+    skills: Skills;
+    projects: Project[];
+    certifications?: any[];
+}
+
+export function generateLaTeX(data: Resume): string {
+  // Template header and preamble
+    let latex = `
+    \\documentclass[letterpaper,11pt]{article}
+
+    \\usepackage{latexsym}
+    \\usepackage[empty]{fullpage}
+    \\usepackage{titlesec}
+    \\usepackage{marvosym}
+    \\usepackage[usenames,dvipsnames]{color}
+    \\usepackage{verbatim}
+    \\usepackage{enumitem}
+    \\usepackage[hidelinks]{hyperref}
+    \\usepackage{fancyhdr}
+    \\usepackage[english]{babel}
+    \\usepackage{tabularx}
+    \\input{glyphtounicode}
+
+    \\pagestyle{fancy}
+    \\fancyhf{} % clear all header and footer fields
+    \\fancyfoot{}
+    \\renewcommand{\\headrulewidth}{0pt}
+    \\renewcommand{\\footrulewidth}{0pt}
+
+    % Adjust margins
+    \\addtolength{\\oddsidemargin}{-0.5in}
+    \\addtolength{\\evensidemargin}{-0.5in}
+    \\addtolength{\\textwidth}{1in}
+    \\addtolength{\\topmargin}{-.5in}
+    \\addtolength{\\textheight}{1.0in}
+
+    \\urlstyle{same}
+
+    \\raggedbottom
+    \\raggedright
+    \\setlength{\\tabcolsep}{0in}
+
+    % Sections formatting
+    \\titleformat{\\section}{
+    \\vspace{-4pt}\\scshape\\raggedright\\large
+    }{}{0em}{}[\\color{black}\\titlerule \\vspace{-5pt}]
+
+    % Ensure that generate pdf is machine readable/ATS parsable
+    \\pdfgentounicode=1
+
+    %-------------------------
+    % Custom commands
+    \\newcommand{\\resumeItem}[1]{
+    \\item\\small{
+        {#1 \\vspace{-2pt}}
+    }
+    }
+
+    \\newcommand{\\resumeSubheading}[4]{
+    \\vspace{-2pt}\\item
+        \\begin{tabular*}{0.97\\textwidth}[t]{l@{\\extracolsep{\\fill}}r}
+        \\textbf{#1} & #2 \\\\
+        \\textit{\\small#3} & \\textit{\\small #4} \\\\
+        \\end{tabular*}\\vspace{-7pt}
+    }
+
+    \\newcommand{\\resumeProjectHeading}[2]{
+        \\item
+        \\begin{tabular*}{0.97\\textwidth}{l@{\\extracolsep{\\fill}}r}
+        \\small#1 & #2 \\\\
+        \\end{tabular*}\\vspace{-7pt}
+    }
+
+    \\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=0.15in, label={}]}
+    \\newcommand{\\resumeSubHeadingListEnd}{\\end{itemize}}
+    \\newcommand{\\resumeItemListStart}{\\begin{itemize}}
+    \\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-5pt}}
+
+    \\begin{document}
+    `;
+
+    // Personal info section
+    const { name, phone, email, linkedin, github } = data.personalInfo;
+    latex += `
+    \\begin{center}
+        \\textbf{\\Huge \\scshape ${name || 'Full Name'}} \\\\ \\vspace{1pt}
+        \\small ${phone || 'Phone'} $|$ \\href{mailto:${email || 'email@example.com'}}{\\underline{${email || 'email@example.com'}}}`;
+        
+    if (linkedin) {
+        latex += ` $|$ \\href{https://linkedin.com/in/${linkedin}}{\\underline{linkedin.com/in/${linkedin}}}`;
+    }
+    
+    if (github) {
+        latex += ` $|$ \\href{https://github.com/${github}}{\\underline{github.com/${github}}}`;
+    }
+    
+    latex += `
+    \\end{center}
+
+    `;
+
+    // Education section
+    latex += `
+    %-----------EDUCATION-----------
+    \\section{Education}
+    \\resumeSubHeadingListStart`;
+
+    data.education.forEach(edu => {
+        latex += `
+        \\resumeSubheading
+        {${edu.institution}}{${edu.location}}
+        {${edu.degree}}{${edu.dates}}`;
+    });
+    
+    latex += `
+    \\resumeSubHeadingListEnd
+
+    `;
+
+    // Experience section
+    latex += `
+    %-----------EXPERIENCE-----------
+    \\section{Experience}
+    \\resumeSubHeadingListStart`;
+
+    data.experience.forEach(exp => {
+        const dates = exp.dates || `${exp.startDate || ''} - ${exp.endDate || 'Present'}`;
+        latex += `
+        \\resumeSubheading
+        {${exp.position}}{${dates}}
+        {${exp.company}}{${exp.location}}
+        \\resumeItemListStart`;
+        
+        exp.bullets.forEach(bullet => {
+        latex += `
+            \\resumeItem{${bullet}}`;
+        });
+        
+        latex += `
+        \\resumeItemListEnd`;
+    });
+    
+    latex += `
+    \\resumeSubHeadingListEnd
+
+    `;
+
+    // Projects section
+    latex += `
+    %-----------PROJECTS-----------
+    \\section{Projects}
+    \\resumeSubHeadingListStart`;
+
+    data.projects.forEach(project => {
+        latex += `
+        \\resumeProjectHeading
+            {\\textbf{${project.name}} $|$ \\emph{${project.technologies}}}{${project.dates}}
+            \\resumeItemListStart`;
+        
+        project.bullets.forEach(bullet => {
+        latex += `
+                \\resumeItem{${bullet}}`;
+        });
+        
+        latex += `
+            \\resumeItemListEnd`;
+    });
+    
+    latex += `
+    \\resumeSubHeadingListEnd
+
+    `;
+
+    // Skills section
+    latex += `
+    %-----------TECHNICAL SKILLS-----------
+    \\section{Technical Skills}
+    \\begin{itemize}[leftmargin=0.15in, label={}]
+        \\small{\\item{
+        \\textbf{Languages}{: ${data.skills.languages.join(', ')}} \\\\
+        \\textbf{Frameworks}{: ${data.skills.frameworks.join(', ')}} \\\\
+        \\textbf{Developer Tools}{: ${data.skills.devTools.join(', ')}} \\\\
+        \\textbf{Libraries}{: ${data.skills.libraries.join(', ')}}
+        }}
+    \\end{itemize}
+
+    `;
+
+    // End document
+    latex += `
+    \\end{document}
+    `;
+
+    return latex;
 }
